@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for devspace.
+# this is the correct GitHub homepage where releases can be downloaded for devspace.
 GH_REPO="https://github.com/loft-sh/devspace"
 TOOL_NAME="devspace"
 TOOL_TEST="devspace --version"
@@ -31,7 +31,6 @@ list_github_tags() {
 }
 
 list_all_versions() {
-  # TODO: Adapt this. By default we simply list the tag names from GitHub releases.
   # Change this function if devspace has other means of determining installable versions.
   list_github_tags
 }
@@ -70,9 +69,14 @@ download_release() {
   local version filename url
   version="$1"
   filename="$2"
+  platform=$(get_platform)
+  arch=$(get_arch)
 
-  # TODO: Adapt the release URL convention for devspace
-  url="$GH_REPO/archive/v${version}.tar.gz"
+  # release URL convention for devspace
+  url="$GH_REPO/releases/download/v${version}/devspace-${platform}-${arch}"
+  if [ arch == "windows" ]; then
+    url="${url}.exe"
+  fi
 
   echo "* Downloading $TOOL_NAME release $version..."
   curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
@@ -88,10 +92,10 @@ install_version() {
   fi
 
   (
-    mkdir -p "$install_path"
-    cp -r "$ASDF_DOWNLOAD_PATH"/* "$install_path"
+    mkdir -p "$install_path"/bin
+    cp -r "$ASDF_DOWNLOAD_PATH/$TOOL_NAME" "$install_path/bin/$TOOL_NAME"
 
-    # TODO: Asert devspace executable exists.
+    # devspace executable exists.
     local tool_cmd
     tool_cmd="$(echo "$TOOL_TEST" | cut -d' ' -f1)"
     test -x "$install_path/bin/$tool_cmd" || fail "Expected $install_path/bin/$tool_cmd to be executable."
